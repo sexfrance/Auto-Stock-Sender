@@ -1,0 +1,6 @@
+{
+    "use_webhook": false,
+    "webhook_url": "",
+    "proxyless": true,
+    "debug": false
+}
