@@ -41,7 +41,7 @@
 ---
 #### 📹 Preview
 
-![Mass Advertiser](https://i.imgur.com/0gGLwTg.png)
+![Mass Advertiser](https://i.imgur.com/g2K3SGP.png)
 
 ---
 ### ❗ Disclaimers
