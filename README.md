@@ -33,8 +33,9 @@
 - Supports multiple tokens
 - Proxyless
 - Saves servers in servers.json
-- Allows to send stock message from a file
-- Allows to auto reply to dms
+- Allows to send stock messages from a file
+- Allows to auto reply to DMS
+- Option to send logs through webhooks
   
   
 ---
