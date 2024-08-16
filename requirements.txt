@@ -2,5 +2,4 @@ colorama==0.4.6
 discord.py-self
 pystyle==2.9
 Requests==2.32.3
-threading
 datetime
