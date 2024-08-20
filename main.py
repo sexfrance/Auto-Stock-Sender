@@ -130,7 +130,7 @@ def home():
     \t\t             
     \t\t                                      Welcome {username} | discord.gg/bestnitro  
     \t\t                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    \t\t  ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════\n""", Colors.red_to_blue, interval=0.0000)
+    \t\t  ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════\n""", Colors.red_to_blue    , interval=0.0000)
 
 home()
 class MyClient(discord.Client):
@@ -211,9 +211,11 @@ class MyClient(discord.Client):
         except discord.errors.HTTPException as e:
             self.log_to_webhook(f"Failed to send message to {guild.name} ({guild_id}) - {channel.name} ({channel_id}): {str(e)}", guild, channel, error=True)
             log.failure(f"Failed to send message to {guild.name} ({guild_id}) - {channel.name} ({channel_id}): {str(e)}")
+            pass
         except Exception as e:
             self.log_to_webhook(f"Unexpected error while sending message to {guild.name} ({guild_id}) - {channel.name} ({channel_id}): {str(e)}", guild, channel, error=True)
             log.failure(f"Unexpected error while sending message to {guild.name} ({guild_id}) - {channel.name} ({channel_id}): {str(e)}")
+            pass
 
     def log_to_webhook(self, message, guild=None, channel=None, error=False):
         if self.config.get("use_webhook", False):
@@ -269,7 +271,6 @@ class MyClient(discord.Client):
         home()
         log.message("Logged In", f'Logged in as {self.user} (ID: {self.user.id})')
         
-            
         self.send_messages_loop.start()
         if self.debug:
             log.debug("Message sending loop started")
@@ -310,7 +311,18 @@ class MyClient(discord.Client):
         else:
             path_or_message = self.stock_path
         
-        if os.path.exists(path_or_message):
+        if os.path.isdir(path_or_message):
+            if self.debug:
+                log.debug(f"Loading message from directory: {path_or_message}")
+            files = [os.path.join(path_or_message, f) for f in os.listdir(path_or_message) if os.path.isfile(os.path.join(path_or_message, f))]
+            if files:
+                selected_file = random.choice(files)
+                with open(selected_file, 'r', encoding='utf-8') as f:
+                    return f.read()
+            else:
+                log.warning(f"No files found in directory: {path_or_message}")
+                return None
+        elif os.path.isfile(path_or_message):
             if self.debug:
                 log.debug(f"Loading message from file: {path_or_message}")
             with open(path_or_message, 'r', encoding='utf-8') as f:
@@ -332,6 +344,11 @@ class MyClient(discord.Client):
             guild_id = server['guild_id']
             channel_id = server['channel_id']
             message = self.get_stock_message(guild_id, channel_id) if self.use_different_messages else self.get_stock_message()
+            
+            if message is None:
+                log.warning(f"No valid stock message found for Guild {guild_id} Channel {channel_id}")
+                continue
+            
             guild = self.get_guild(guild_id)
             if guild:
                 channel = guild.get_channel(channel_id)
@@ -345,11 +362,13 @@ class MyClient(discord.Client):
                     log.failure(f"Channel {channel_id} not found in guild {guild_id}")
             else:
                 log.failure(f"Guild {guild_id} not found")
+
 def truncate_token(token, max_length=10):
     if len(token) > max_length:
         return token[:max_length] + '...'
     else:
         return token
+
 def run_client_with_loader(token, proxy, debug):
     client = MyClient(token, proxy)
     client.configure()
@@ -366,7 +385,6 @@ def run_client_with_loader(token, proxy, debug):
                 client.run(token, log_handler=None)
     except Exception as e:
         log.failure(f"Failed to run client: {e}")
-
 
 def run_clients(tokens, proxies):
     config = {}
@@ -387,7 +405,6 @@ def run_clients(tokens, proxies):
         for token in tokens:
             proxy = random.choice(proxies) if proxies else None
             run_client_with_loader(token, proxy, debug)
-
 
 if __name__ == "__main__":
     tokens = MyClient.get_tokens()
