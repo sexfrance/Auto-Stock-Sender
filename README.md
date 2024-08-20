@@ -34,14 +34,15 @@
 - Proxyless
 - Saves servers in servers.json
 - Allows to send stock messages from a file
+- Allows to send random stock messages from a folder
 - Allows to auto reply to DMS
 - Option to send logs through webhooks
-  
+
   
 ---
 #### 📹 Preview
 
-![Mass Advertiser](https://i.imgur.com/g2K3SGP.png)
+![Stock Sender](https://i.imgur.com/g2K3SGP.png)
 
 ---
 ### ❗ Disclaimers
@@ -56,6 +57,9 @@
 ```diff
 v0.0.1 ⋮ 8/6/2024
 ! Initial release
+
+v0.0.1 ⋮ 20/8/2024
+! Added feature to send random messages from stock.txt
 ```
 
 ---
