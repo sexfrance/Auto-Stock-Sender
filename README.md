@@ -5,7 +5,7 @@
     Python script that allows you to advertise yourself with your discord stock. You enter your guild id and channel id and the script will adapt itself and send your advertising message !
     <br />
     <br />
-    <a href="https://discord.gg/bestnitro">💬 Discord</a>
+    <a href="https://discord.cyberious.xyz">💬 Discord</a>
     ·
     <a href="https://github.com/sexfrance/Auto-Stock-Sender#-changelog">📜 ChangeLog</a>
     ·
