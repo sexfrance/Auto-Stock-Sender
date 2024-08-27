@@ -25,7 +25,7 @@ username = getpass.getuser()
 
 # ----- Logging Class ----- #
 class Logger:
-    def __init__(self, prefix: str = ".gg/bestnitro"):
+    def __init__(self, prefix: str = "discord.cyberious.xyz"):
         self.WHITE = "\u001b[37m"
         self.MAGENTA = "\033[38;5;97m"
         self.MAGENTAA = "\033[38;2;157;38;255m"
@@ -100,7 +100,7 @@ class Loader:
         for c in cycle(self.steps):
             if self.done:
                 break
-            print(f"\r{log.PINK}[{log.MAGENTA}.gg/bestnitro{log.PINK}] [{log.MAGENTAA}{self.time}{log.PINK}] {log.PINK}[{Fore.BLUE}Connection{log.PINK}] -> {Fore.RESET} {log.GREEN}{self.desc}{Fore.RESET} {c}", flush=True, end="")
+            print(f"\r{log.PINK}[{log.MAGENTA}discord.cyberious.xyz{log.PINK}] [{log.MAGENTAA}{self.time}{log.PINK}] {log.PINK}[{Fore.BLUE}Connection{log.PINK}] -> {Fore.RESET} {log.GREEN}{self.desc}{Fore.RESET} {c}", flush=True, end="")
             time.sleep(self.timeout)
 
     def __enter__(self):
@@ -128,7 +128,7 @@ def home():
     \t\t |  $$$$$$/ |  $$$$/|  $$$$$$/|  $$$$$$$| $$ \  $$      |  $$$$$$/|  $$$$$$$| $$  | $$|  $$$$$$$|  $$$$$$$| $$      
     \t\t  \______/   \___/   \______/  \_______/|__/  \__/       \______/  \_______/|__/  |__/ \_______/ \_______/|__/                                                                                                              
     \t\t             
-    \t\t                                      Welcome {username} | discord.gg/bestnitro  
+    \t\t                                      Welcome {username} | discord.cyberious.xyz 
     \t\t                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     \t\t  ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════\n""", Colors.red_to_blue    , interval=0.0000)
 
