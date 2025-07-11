@@ -11,7 +11,6 @@ import getpass
 from datetime import datetime
 from colorama import Fore, Style
 from pystyle import Write, System, Colors, Colorate, Anime
-from discord.ext import tasks
 from threading import Thread
 from itertools import cycle
 from shutil import get_terminal_size
@@ -25,7 +24,7 @@ username = getpass.getuser()
 
 # ----- Logging Class ----- #
 class Logger:
-    def __init__(self, prefix: str = "discord.cyberious.xyz"):
+    def __init__(self, prefix: str = ".gg/bestnitro"):
         self.WHITE = "\u001b[37m"
         self.MAGENTA = "\033[38;5;97m"
         self.MAGENTAA = "\033[38;2;157;38;255m"
@@ -100,7 +99,7 @@ class Loader:
         for c in cycle(self.steps):
             if self.done:
                 break
-            print(f"\r{log.PINK}[{log.MAGENTA}discord.cyberious.xyz{log.PINK}] [{log.MAGENTAA}{self.time}{log.PINK}] {log.PINK}[{Fore.BLUE}Connection{log.PINK}] -> {Fore.RESET} {log.GREEN}{self.desc}{Fore.RESET} {c}", flush=True, end="")
+            print(f"\r{log.PINK}[{log.MAGENTA}.gg/bestnitro{log.PINK}] [{log.MAGENTAA}{self.time}{log.PINK}] {log.PINK}[{Fore.BLUE}Connection{log.PINK}] -> {Fore.RESET} {log.GREEN}{self.desc}{Fore.RESET} {c}", flush=True, end="")
             time.sleep(self.timeout)
 
     def __enter__(self):
@@ -128,7 +127,7 @@ def home():
     \t\t |  $$$$$$/ |  $$$$/|  $$$$$$/|  $$$$$$$| $$ \  $$      |  $$$$$$/|  $$$$$$$| $$  | $$|  $$$$$$$|  $$$$$$$| $$      
     \t\t  \______/   \___/   \______/  \_______/|__/  \__/       \______/  \_______/|__/  |__/ \_______/ \_______/|__/                                                                                                              
     \t\t             
-    \t\t                                      Welcome {username} | discord.cyberious.xyz 
+    \t\t                                      Welcome {username} | discord.gg/bestnitro  
     \t\t                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     \t\t  ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════\n""", Colors.red_to_blue    , interval=0.0000)
 
@@ -238,9 +237,7 @@ class MyClient(discord.Client):
             requests.post(self.config["webhook_url"], json={"embeds": [embed]})
             if self.debug:
                 log.debug('Sent message to webhook')
-        else:
-            log.debug(f"Message: {message}")
-
+     
     @staticmethod
     def get_tokens():
         if os.path.exists(TOKEN_PATH):
@@ -271,9 +268,43 @@ class MyClient(discord.Client):
         home()
         log.message("Logged In", f'Logged in as {self.user} (ID: {self.user.id})')
         
-        self.send_messages_loop.start()
+        # Start a separate task for each server/channel
+        self.channel_tasks = []
+        for server in self.servers:
+            guild_id = server['guild_id']
+            channel_id = server['channel_id']
+            task = self.loop.create_task(self.channel_message_loop(guild_id, channel_id))
+            self.channel_tasks.append(task)
         if self.debug:
-            log.debug("Message sending loop started")
+            log.debug("Started per-channel message loops")
+
+    async def channel_message_loop(self, guild_id, channel_id):
+        while True:
+            message = self.get_stock_message(guild_id, channel_id) if self.use_different_messages else self.get_stock_message()
+            if message is None:
+                log.warning(f"No valid stock message found for Guild {guild_id} Channel {channel_id}")
+                continue
+            guild = self.get_guild(guild_id)
+            if guild:
+                channel = guild.get_channel(channel_id)
+                if channel:
+                    try:
+                        await self.send_stock_message(guild_id, channel_id, message)
+                        delay = max(getattr(channel, 'slowmode_delay', 1), 1)
+                        if self.debug:
+                            log.debug(f"Sent message to Guild {guild_id} Channel {channel_id} and sleeping for {delay}s")
+                    except discord.errors.HTTPException as e:
+                        if e.status == 429 and hasattr(e, 'retry_after'):
+                            retry_after = getattr(e, 'retry_after', 60)
+                            log.warning(f"Rate limited on Guild {guild_id} Channel {channel_id}, retrying in {retry_after}s")
+                        else:
+                            log.failure(f"HTTPException for Guild {guild_id} Channel {channel_id}: {e}")
+                    except Exception as e:
+                        log.failure(f"Unexpected error in channel loop for Guild {guild_id} Channel {channel_id}: {e}")
+                else:
+                    log.failure(f"Channel {channel_id} not found in guild {guild_id}")
+            else:
+                log.failure(f"Guild {guild_id} not found")
 
     def configure(self):
         use_saved = log.question("Use servers from servers.json? (y/n): ").lower() == 'y'
@@ -337,31 +368,6 @@ class MyClient(discord.Client):
             await message.channel.send(self.dm_reply)
             if self.debug:
                 log.debug(f"Sent DM reply to {message.author}")
-
-    @tasks.loop(seconds=1)  # Check every second
-    async def send_messages_loop(self):
-        for server in self.servers:
-            guild_id = server['guild_id']
-            channel_id = server['channel_id']
-            message = self.get_stock_message(guild_id, channel_id) if self.use_different_messages else self.get_stock_message()
-            
-            if message is None:
-                log.warning(f"No valid stock message found for Guild {guild_id} Channel {channel_id}")
-                continue
-            
-            guild = self.get_guild(guild_id)
-            if guild:
-                channel = guild.get_channel(channel_id)
-                if channel:
-                    if (guild_id, channel_id) not in self.slowmode_intervals or time.time() >= self.slowmode_intervals[(guild_id, channel_id)]:
-                        await self.send_stock_message(guild_id, channel_id, message)
-                        self.slowmode_intervals[(guild_id, channel_id)] = time.time() + channel.slowmode_delay
-                        if self.debug:
-                            log.debug(f"Sent message to Guild {guild_id} Channel {channel_id} and updated slowmode interval")
-                else:
-                    log.failure(f"Channel {channel_id} not found in guild {guild_id}")
-            else:
-                log.failure(f"Guild {guild_id} not found")
 
 def truncate_token(token, max_length=10):
     if len(token) > max_length:
